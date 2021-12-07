@@ -14,4 +14,20 @@ CHIP Add16 {
 
     PARTS:
    // Put you code here:
+    FullAdder(c=false, a=a[0],  b=b[0],  sum=out[0],  carry=c0); //最低位没有进位
+    FullAdder(c=c0,    a=a[1],  b=b[1],  sum=out[1],  carry=c1);
+    FullAdder(c=c1,    a=a[2],  b=b[2],  sum=out[2],  carry=c2);
+    FullAdder(c=c2,    a=a[3],  b=b[3],  sum=out[3],  carry=c3);
+    FullAdder(c=c3,    a=a[4],  b=b[4],  sum=out[4],  carry=c4);
+    FullAdder(c=c4,    a=a[5],  b=b[5],  sum=out[5],  carry=c5);
+    FullAdder(c=c5,    a=a[6],  b=b[6],  sum=out[6],  carry=c6);
+    FullAdder(c=c6,    a=a[7],  b=b[7],  sum=out[7],  carry=c7);
+    FullAdder(c=c7,    a=a[8],  b=b[8],  sum=out[8],  carry=c8);
+    FullAdder(c=c8,    a=a[9],  b=b[9],  sum=out[9],  carry=c9);
+    FullAdder(c=c9,    a=a[10], b=b[10], sum=out[10], carry=c10);
+    FullAdder(c=c10,   a=a[11], b=b[11], sum=out[11], carry=c11);
+    FullAdder(c=c11,   a=a[12], b=b[12], sum=out[12], carry=c12);
+    FullAdder(c=c12,   a=a[13], b=b[13], sum=out[13], carry=c13);
+    FullAdder(c=c13,   a=a[14], b=b[14], sum=out[14], carry=c14);
+    FullAdder(c=c14,   a=a[15], b=b[15], sum=out[15], carry=c15); //c15 一般就舍弃不考虑了
 }
