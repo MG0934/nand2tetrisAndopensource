@@ -36,8 +36,73 @@ CHIP CPU {
     OUT outM[16],        // M value output
         writeM,          // Write to M? 
         addressM[15],    // Address in data memory (of M)
-        pc[15];          // address of next instruction
+        pc[15];          // address of next instruction 最高位为符号位
 
     PARTS:
-    // Put your code here:
+    //解码c指令
+    And(a=instruction[15], b=instruction[0], out=j3);
+    And(a=instruction[15], b=instruction[1], out=j2);
+    And(a=instruction[15], b=instruction[2], out=j1);
+    And(a=instruction[15], b=instruction[3], out=d3);
+    And(a=instruction[15], b=instruction[4], out=d2);
+    And(a=instruction[15], b=instruction[5], out=d1);
+    And(a=instruction[15], b=instruction[6], out=c6);
+    And(a=instruction[15], b=instruction[7], out=c5);
+    And(a=instruction[15], b=instruction[8], out=c4);
+    And(a=instruction[15], b=instruction[9], out=c3);
+    And(a=instruction[15], b=instruction[10], out=c2);
+    And(a=instruction[15], b=instruction[11], out=c1);
+    And(a=instruction[15], b=instruction[12], out=ca);
+    //只有为c指令的时候 高位会全部为0
+    And(a=instruction[15], b=true, out=one2);
+    And(a=instruction[15], b=true, out=one1);
+    And(a=instruction[15], b=true, out=tag);
+
+
+    //设计register a nottag=1 则证明是a指令 如果未 0 则证明是c指令
+    Not(in=tag, out=nottag);
+    //如果是A指令 则将a存到register 如果是C指令还是需要判断是不是d1 如果是d1 需要存储到a register中
+    Mux16(a=aluOut, b=instruction, sel=nottag, out=mux1out);
+    //判断需不需要存储
+    Or(a=nottag, b=d1, out=or1out);
+    ARegister(in=mux1out, load=or1out, out=ARout);
+
+
+    //ALU
+    DRegister(in=aluOut, load=d2, out=DRegiste);
+    Mux16(a=ARout, b=inM, sel=ca, out=mux2out);
+    ALU(x=DRegiste, y=mux2out, zx=c1, nx=c2, zy=c3,ny=c4, f=c5, no=c6,out=aluOut, zr=zr, ng=ng);
+
+    //PC 
+    // nr ng 不能同时为1 底层原理限制
+    Not(in=zr,out=notzr);
+    Not(in=ng,out=notng);
+
+    And(a=notzr, b=notng, out=positive);// zr=0， ng=0时，结果大于0
+    And(a=zr, b=notng, out=zero);// zr=1， ng=0  时，结果等于0
+    And(a=notzr, b=ng, out=negative);// zr=0，ng=1 时，结果小于0 
+
+    //三种跳转情况
+    And(a=j3, b=positive, out=POSjump);
+    And(a=j2, b=zero, out=ZRjump);
+    And(a=j1, b=negative, out=NEGjump);
+    //无条件跳转 j3 j2 j1 都为1
+    And(a=j3, b=j2, out=and1out);
+    And(a=and1out, b=j1, out=UCDTjump);//uncondition jump
+    //四种跳转满足一种就跳转
+    Or(a = POSjump, b = ZRjump, out = or2out);
+    Or(a = or2out, b = NEGjump, out = or3out);
+    Or(a = or3out, b = UCDTjump, out = or4out);
+    And(a = instruction[15], b = or4out, out = load);//最后推算一次是不是c指令
+    //如果不是跳转 就是自加
+    Not(in=load, out=inc);
+    PC(in = ARout , reset = reset, load = load, inc = inc, out[0..14] = pc);
+    
+    // 最后有三个跟RAM有关的部分
+    // ALU输出的结果 是否写入M
+    And(a=instruction[15], b=d3, out=writeM); 
+    // ALU输出的结果
+    And16(a=aluOut, b=aluOut, out=outM);
+    // ALU输出的结果 存在哪
+    And16(a=ARout, b=ARout, out[0..14]=addressM); //这个也可以直接写在ARegister里
 }
